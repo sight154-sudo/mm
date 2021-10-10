@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.UserDao">
+    <!--配置实体类属性和数据库表中列的对应关系-->
+    <resultMap id="BaseResultMap" autoMapping="true" type="com.itheima.domain.User">
+        <id column="user_id" property="id"/>
+        <result column="user_name" property="userName"/>
+        <result column="join_date" property="joinDate"/>
+        <result column="dept_id" property="deptId"/>
+        <association property="dept"
+                     javaType="com.itheima.domain.Dept"
+                     column="dept_id"
+                     select="com.itheima.dao.DeptDao.findById"
+                     />
+    </resultMap>
+
+    <!--配置查询所有，带条件-->
+    <select id="findAll" resultMap="BaseResultMap">
+        select user_id, email, user_name,  password, state, gender,
+        telephone, birthday, join_date, dept_id from ss_user
+    </select>
+
+    <!--配置根据ID查询-->
+    <select id="findById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select user_id, email, user_name,  password, state, gender,
+        telephone, birthday, join_date, dept_id
+        from ss_user
+        where user_id = #{id}
+    </select>
+
+
+    <!--配置根据ID查询-->
+    <select id="findAllRoleByUid" parameterType="java.lang.String" resultType="java.util.Map">
+        select
+            role_id id,
+            name name,
+            if(role_id in (select role_id from ss_role_user where user_id = #{uid}),'checked','') checked
+        from  ss_role
+    </select>
+
+
+    <select id="findAllPermission" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT
+            sm.curl curl
+        FROM
+            ss_role_user sru,
+            ss_role_module srm,
+            ss_module sm
+        WHERE
+            sru.user_id = #{id}
+          AND sru.role_id = srm.role_id
+          AND srm.module_id = sm.module_id
+    </select>
+
+    <select id="findRoleIdsByUserId" parameterType="java.lang.String" resultType="java.lang.String">
+        select role_id roleId
+        from ss_role_user
+        where user_id = #{id}
+    </select>
+
+<!--    用户登陆-->
+    <select id="findUserByEmailAndPwd" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from ss_user where email = #{email} and password = #{password}
+    </select>
+
+
+    <!--配置根据id删除-->
+    <delete id="delete" parameterType="java.lang.String">
+        delete from ss_user where user_id = #{id}
+    </delete>
+
+
+    <delete id="deleteRoleByUid" parameterType="java.lang.String">
+        delete from ss_role_user where user_id = #{uid}
+    </delete>
+    <!--配置全字段插入，当某个字段没有值时，插入null-->
+    <insert id="save" parameterType="com.itheima.domain.User">
+        insert into ss_user (user_id, email, user_name,  password, state,
+        gender, telephone, birthday, join_date, dept_id)
+        values (#{id}, #{email}, #{userName},
+        #{password}, #{state,jdbcType=DECIMAL}, #{gender},
+        #{telephone}, #{birthday}, #{joinDate},
+        #{deptId})
+    </insert>
+    <insert id="bindRoleByUserId" parameterType="java.lang.String">
+        insert into
+            ss_role_user(role_id,user_id)
+        values(#{rid},#{uid})
+    </insert>
+
+
+    <!--配置全字段更新，当提供的数据为null时，数据库数据会被更新为null-->
+    <update id="update" parameterType="com.itheima.domain.User">
+        update ss_user
+        set email = #{email},
+        user_name = #{userName},
+        password = #{password},
+        state = #{state},
+        gender = #{gender},
+        telephone = #{telephone},
+        birthday = #{birthday},
+        join_date = #{joinDate},
+        dept_id = #{deptId}
+        where user_id = #{id}
+    </update>
+</mapper>

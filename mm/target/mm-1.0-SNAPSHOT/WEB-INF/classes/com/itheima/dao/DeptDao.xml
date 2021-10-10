@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.DeptDao">
+
+    <!--配置实体类属性和数据库表中列的对应关系-->
+    <resultMap id="BaseResultMap" type="com.itheima.domain.Dept">
+        <id column="dept_id" property="id"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="state" property="state"/>
+        <result column="parent_id" property="parentId"/>
+        <association property="parent"
+                     column="parent_id"
+                     select="com.itheima.dao.DeptDao.findById"
+                     javaType="com.itheima.domain.Dept">
+        </association>
+    </resultMap>
+
+    <!--配置查询所有，带条件-->
+    <select id="findAll" resultMap="BaseResultMap">
+        select * from ss_dept
+    </select>
+
+    <!--配置根据ID查询-->
+    <select id="findById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from ss_dept where dept_id = #{id}
+    </select>
+
+    <!--配置根据id删除-->
+    <delete id="delete" parameterType="java.lang.String">
+        delete from ss_dept  where dept_id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <!--配置全字段插入-->
+    <insert id="save" parameterType="com.itheima.domain.Dept">
+        insert into ss_dept (dept_id, dept_name, parent_id,state)
+        values (#{id,jdbcType=VARCHAR}, #{deptName,jdbcType=VARCHAR},
+                #{parentId,jdbcType=VARCHAR},#{state,jdbcType=DECIMAL})
+    </insert>
+
+    <!--配置全字段更新-->
+    <update id="update" parameterType="com.itheima.domain.Dept">
+        update ss_dept
+        set dept_name = #{deptName,jdbcType=VARCHAR},
+            parent_id = #{parentId,jdbcType=VARCHAR},
+            state = #{state,jdbcType=DECIMAL}
+        where dept_id = #{id,jdbcType=VARCHAR}
+    </update>
+</mapper>

@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.ModuleDao">
+    <!--配置实体类属性和数据库表中列的对应关系-->
+    <resultMap id="BaseResultMap" type="com.itheima.domain.Module">
+        <id column="module_id" property="id"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="name" property="name"/>
+        <result column="ctype" property="ctype"/>
+        <result column="state" property="state"/>
+        <result column="curl" property="curl"/>
+        <result column="remark" property="remark"/>
+        <association
+            property="module"
+            javaType="com.itheima.domain.Module"
+            column="parent_id"
+            select="com.itheima.dao.ModuleDao.findById"
+            />
+    </resultMap>
+
+
+   <!-- id: 2,
+    parentId: 0,
+    name: "题库管理",
+    ctype: 0, //类型（1-系统菜单，2-二级菜单，3-……，4-……）
+    curl:"store-->
+    <resultMap id="MenuResultMap" type="com.itheima.domain.Module">
+        <id column="module_id" property="id"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="name" property="name"/>
+        <result column="ctype" property="ctype"/>
+        <result column="curl" property="curl"/>
+    </resultMap>
+
+    <!--配置查询的列名公共SQL语句-->
+    <sql id="Base_Column_List">
+        module_id, parent_id, name, ctype, state, curl, remark
+    </sql>
+
+    <!--配置查询所有，带条件-->
+    <select id="findAll" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ss_module
+    </select>
+
+    <select id="findAllByUid" parameterType="java.lang.String" resultMap="MenuResultMap">
+        SELECT
+            sm.module_id module_id,
+            sm.parent_id parent_id,
+            sm.NAME name,
+            sm.curl curl,
+            sm.ctype ctype
+        FROM
+            ss_role_user sru,
+            ss_role_module srm,
+            ss_module sm
+        WHERE
+            sru.user_id = #{uid}
+          AND sru.role_id = srm.role_id
+          AND srm.module_id = sm.module_id
+    </select>
+
+
+
+    <select id="findAllExcept" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ss_module
+        where
+          module_id != #{id}
+          and module_id not in(select module_id from ss_module where parent_id = #{id});
+    </select>
+    <!--配置根据ID查询-->
+    <select id="findById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ss_module
+        where module_id = #{id}
+    </select>
+
+    <!--配置根据id删除-->
+    <delete id="delete" parameterType="java.lang.String">
+        delete from ss_module where module_id = #{id}
+    </delete>
+
+    <!--配置全字段插入，当某个字段没有值时，插入null-->
+    <!--    根据用户id查询关联的模块信息-->
+    <select id="findAuthorDataByRoleId" parameterType="java.lang.String" resultType="java.util.Map">
+        select
+            module_id id,
+            ifnull(parent_id,0) pId,
+            name name,
+            if(module_id in (select module_id from ss_role_module where role_id = #{roleId}),'true','false') checked
+        from ss_module
+    </select>
+
+
+    <insert id="save" parameterType="com.itheima.domain.Module">
+        insert into ss_module (module_id, parent_id, name, ctype, state, curl, remark)
+        values (#{id}, #{parentId},#{name}, #{ctype}, #{state},#{curl},#{remark})
+    </insert>
+
+    <!--配置全字段更新，当提供的数据为null时，数据库数据会被更新为null-->
+    <update id="update" parameterType="com.itheima.domain.Module">
+        update ss_module
+        set parent_id = #{parentId},
+        name = #{name},
+        ctype = #{ctype},
+        state = #{state},
+        curl = #{curl},
+        remark = #{remark}
+        where module_id = #{id}
+    </update>
+</mapper>
